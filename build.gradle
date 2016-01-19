@@ -1,0 +1,53 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+group = 'com.github.jneat'
+version = '0.4.9'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.+'
+    
+    testCompile 'org.assertj:assertj-core:3.9.0'
+    testCompile 'org.testng:testng:6.14.2'
+}
+
+test {
+    useTestNG()
+    testLogging.showStandardStreams = true
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        mavenJar(MavenPublication) {
+            from components.java
+            artifact sourcesJar {
+                classifier "sources"
+            }
+            artifact javadocJar {
+                classifier "javadoc"
+            }
+        }
+    }
+}
