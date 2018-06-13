@@ -104,6 +104,14 @@ public class EventBusAsync<E extends Event> implements EventBus<E> {
                 handlers.remove(wh);
             }
 
+            if (eventsQueue.isEmpty()) {
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException ex) {
+                    logger.error(ex.getMessage(), ex);
+                }
+            }
+            
             E event = eventsQueue.poll();
             if (event != null) {
                 notifySubscribers(event);

@@ -57,6 +57,8 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
 
     private final ExecutorService handlersExecutor;
 
+    private final int sleepMs;
+
     /**
      * CAN OVERRIDE THIS METHOD.
      * If you need to add some weirdo filters to events right before handler will be submitted to executor.
@@ -90,6 +92,8 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
         eventQueueThread = new Thread(this::eventsQueue, "EventQueue handlers thread");
         eventQueueThread.setDaemon(true);
         eventQueueThread.start();
+        // Possibly will make it as configurable variable
+        this.sleepMs = 5;
     }
 
     @Override
@@ -152,6 +156,14 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
                     if (set != null) {
                         set.remove(wh);
                     }
+                }
+            }
+
+            if (eventsQueue.isEmpty()) {
+                try {
+                    Thread.sleep(sleepMs);
+                } catch (InterruptedException ex) {
+                    logger.error(ex.getMessage(), ex);
                 }
             }
 
