@@ -1,5 +1,4 @@
 val artifactGroup = "com.github.jneat"
-val artifactVersion = "0.5.0"
 plugins {
     id("java")
     id("maven-publish")
@@ -48,7 +47,7 @@ tasks {
 publishing {
     publications {
         create<MavenPublication>("projectMvnPublication") {
-            version = artifactVersion
+            version = version
             groupId = artifactGroup
             from(components["java"])
             artifact(tasks["sourcesJar"])
