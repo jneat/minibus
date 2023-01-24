@@ -18,7 +18,7 @@ For working example you can look into project tests.
 You can add this artifact to your project using [JitPack](https://jitpack.io/#javaplugs/minibus).  
 All versions list, instructions for gradle, maven, ivy etc. can be found by link above.
 
-To get latest commit use -SNAPSHOT instead version number.
+To get latest commit use `master-SNAPSHOT` instead version number.
 
 This library using slf4j-api which should not output messages by default. 
 You have to configure proper logger for slf4j in your project to view this messages.
