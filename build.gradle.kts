@@ -1,29 +1,25 @@
-import com.jfrog.bintray.gradle.BintrayExtension
-
 val artifactGroup = "com.github.jneat"
 val artifactVersion = "0.5.0"
 plugins {
     id("java")
     id("maven-publish")
-    id("com.jfrog.bintray") version "1.8.4"
 }
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
-    compile("org.slf4j:slf4j-api:1.7.+")
+    implementation("org.slf4j:slf4j-api:1.7.+")
 
-    testCompile("org.assertj:assertj-core:3.9.0")
-    testCompile("org.testng:testng:6.14.2")
+    testImplementation("org.assertj:assertj-core:3.24.+")
+    testImplementation("org.testng:testng:7.7.1")
 }
 
 tasks {
     java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     test {
@@ -59,15 +55,4 @@ publishing {
             artifact(tasks["javadocJar"])
         }
     }
-}
-
-bintray {
-    user = System.getenv("BINTRAY_USER")
-    key = System.getenv("BINTRAY_KEY")
-    setPublications("projectMvnPublication")
-    pkg(closureOf<BintrayExtension.PackageConfig> {
-        repo = "jneat"
-        name = "minibus"
-        userOrg = System.getenv("BINTRAY_USER")
-    })
 }
