@@ -16,7 +16,7 @@ like asking deceased person to approve some license changes etc. This is the mai
 
 "we" and "us" means the owner of the current repository.
 
-"Work" means any project, work or materials owned or managed by Arigato Machine Inc.
+"Work" means any project, work or materials owned or managed by the current repository owner.
 
 "You" and "your" means you and any organization on whose behalf you are entering this Agreement.
 
