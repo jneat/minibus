@@ -2,24 +2,24 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2018 by rumatoest at github.com
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE. 
+ * SOFTWARE.
  */
 package com.github.jneat.minibus;
 
@@ -34,24 +34,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 /**
- * Simple event bus with no background threads,
- * if you have few handlers or do not want to have background threads.
- * All consumers will be called directly during event publishing.
- * Publishing event handlers complexity is O(N) we just do linear search without optimizations.
+ * Simple event bus with no background threads, if you have few handlers or do not want to have background threads. All
+ * consumers will be called directly during event publishing. Publishing event handlers complexity is O(N) we just do
+ * linear search without optimizations.
  */
 public class EventBusSimple<E extends EventBusEvent, H extends EventBusHandler<?>> implements EventBus<E, H> {
 
     private static final Logger logger = LoggerFactory.getLogger(EventBusSimple.class);
 
-    private final ReferenceQueue gcQueue = new ReferenceQueue();
+    private final ReferenceQueue<H> gcQueue = new ReferenceQueue<H>();
 
     private final AtomicInteger processing = new AtomicInteger();
 
     private final Set<WeakHandler<H>> handlers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     /**
-     * CAN OVERRIDE THIS METHOD.
-     * This actually runs handler. You can add some hooks here.
+     * CAN OVERRIDE THIS METHOD. This actually runs handler. You can add some hooks here.
      */
     protected void runHandler(H h, E e) throws Throwable {
         h.handleEvent(e);
@@ -59,12 +57,12 @@ public class EventBusSimple<E extends EventBusEvent, H extends EventBusHandler<?
 
     @Override
     public void subscribe(H subscriber) {
-        handlers.add(new WeakHandler(subscriber, gcQueue));
+        handlers.add(new WeakHandler<>(subscriber, gcQueue));
     }
 
     @Override
     public void unsubscribe(H subscriber) {
-        handlers.remove(new WeakHandler(subscriber, gcQueue));
+        handlers.remove(new WeakHandler<>(subscriber, gcQueue));
     }
 
     @Override
@@ -91,8 +89,9 @@ public class EventBusSimple<E extends EventBusEvent, H extends EventBusHandler<?
     }
 
     private void processEvent(EventWrapper<E, H> ew) {
-        WeakHandler wh;
-        while ((wh = (WeakHandler)gcQueue.poll()) != null) {
+        WeakHandler<H> wh;
+        //noinspection unchecked
+        while ((wh = (WeakHandler<H>) gcQueue.poll()) != null) {
             handlers.remove(wh);
         }
         if (ew != null) {
@@ -116,8 +115,7 @@ public class EventBusSimple<E extends EventBusEvent, H extends EventBusHandler<?
                     runHandlerWrapper(eh, ew);
                 }
             } catch (Throwable th) {
-                logger.error("Event processing fail " + ew.event.getClass().getSimpleName()
-                    + ". " + th.getMessage(), th);
+                logger.error("Event processing fail {}. {}", ew.event.getClass().getSimpleName(), th.getMessage(), th);
             }
         }
     }
@@ -129,8 +127,7 @@ public class EventBusSimple<E extends EventBusEvent, H extends EventBusHandler<?
                 ew.success.accept(ew.event, eh);
             }
         } catch (Throwable ex) {
-            logger.error("Handler processing fail for " + ew.event.getClass().getSimpleName()
-                + ". " + ex.getMessage(), ex);
+            logger.error("Handler processing fail for {}. {}", ew.event.getClass().getSimpleName(), ex.getMessage(), ex);
             if (ew.failure != null) {
                 ew.failure.accept(ew.event, eh, ex);
             }

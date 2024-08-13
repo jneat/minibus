@@ -1,7 +1,5 @@
 package com.github.jneat.minibus;
 
-import com.github.jneat.minibus.EventBusHandler;
-
 public class Handler4Error extends EventBusHandler<Event4> {
 
     @Override

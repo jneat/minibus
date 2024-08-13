@@ -36,6 +36,7 @@ public abstract class EventBusHandler<E extends EventBusEvent> {
 
     private Class<E> getGenericTypeClass() {
         if (eventClass == null) {
+            //noinspection unchecked
             eventClass = (Class<E>)((ParameterizedType)getClass()
                 .getGenericSuperclass())
                 .getActualTypeArguments()[0];

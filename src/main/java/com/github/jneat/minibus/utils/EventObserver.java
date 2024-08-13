@@ -26,14 +26,15 @@ package com.github.jneat.minibus.utils;
 
 import com.github.jneat.minibus.EventBusEvent;
 
-/*
+/**
  * A replacement for the now deprecated java.util.Observer pattern
+ *
  * @see java.util.Observer
  */
 public interface EventObserver<E extends EventBusEvent> {
 
-    default String getObserverName(){
-        return this.getClass().getName()+"Observer";
+    default String getObserverName() {
+        return this.getClass().getName() + "Observer";
     }
 
     void update(EventObservable<E> observable, E event);
