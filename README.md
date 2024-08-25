@@ -71,8 +71,8 @@ public class Handler2 extends EventBusHandler<Event2> {
 ### Advanced handler
 Should use than you need to process different events in one place.
 
-Advanced handlers choosing can not be optimized it is always O(N)
-where N is total number of handlers.
+Note that advanced handlers selecting approach can not be optimized.
+It is always O(N) where N is total number of handlers.
 
 ```java
 public class HandlerAdvanced extends EventBusHandler<EventBusEvent> {
