@@ -27,7 +27,7 @@ package com.github.jneat.minibus;
  * Immutable Event that can be processed in EventBus.
  * Note that you should take care about your events immutability.
  * We suggest you to use only final properties, and in a case if you need builder
- * for your message, you can use lombock (https://projectlombok.org) library for this purpose.
+ * for your message, you can use <a href="https://projectlombok.org">project lombok</a> library for this purpose.
  */
 public interface EventBusEvent {
 }

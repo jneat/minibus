@@ -34,7 +34,7 @@ public interface EventBus<E extends EventBusEvent, H extends EventBusHandler<?>>
 
     /**
      * Subscribe consumer to the event bus using weak link.
-     *
+     * <p>
      * Subscribing same object twice should not affect how many times subscriber will
      * be called per one event.
      *
@@ -53,7 +53,7 @@ public interface EventBus<E extends EventBusEvent, H extends EventBusHandler<?>>
 
     /**
      * Sends a event (message) to the bus which will be propagated to the appropriate subscribers (handlers).
-     *
+     * <p>
      * There is no specification given as to how the messages will be delivered,
      * and should be determine in each implementation.
      *

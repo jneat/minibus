@@ -1,14 +1,11 @@
 package com.github.jneat.minibus;
 
-import com.github.jneat.minibus.EventBusAsync;
-import com.github.jneat.minibus.EventBus;
-import com.github.jneat.minibus.EventBusSimple;
-import com.github.jneat.minibus.EventBusHandler;
-import static org.assertj.core.api.Assertions.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EventBusAsyncTest {
 
@@ -24,7 +21,6 @@ public class EventBusAsyncTest {
 
     @BeforeClass
     void init() {
-
     }
 
     @Test(priority = 10)

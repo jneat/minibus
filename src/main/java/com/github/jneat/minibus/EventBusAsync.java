@@ -2,24 +2,24 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2018 by rumatoest at github.com
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE. 
+ * SOFTWARE.
  */
 package com.github.jneat.minibus;
 
@@ -38,38 +38,33 @@ import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 
 /**
- * Async event bus that will run each event/handler call in separate thread.
- * By default using CachedThreadPool to run handlers.
+ * Async event bus that will run each event/handler call in separate thread. By default using CachedThreadPool to run
+ * handlers.
  */
 public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>> implements EventBus<E, H> {
 
     private static final Logger logger = LoggerFactory.getLogger(EventBusAsync.class);
 
-    private final Thread eventQueueThread;
-
     private final Queue<EventWrapper<E, H>> eventsQueue = new ConcurrentLinkedQueue<>();
 
-    private final ReferenceQueue gcQueue = new ReferenceQueue();
+    private final ReferenceQueue<H> gcQueue = new ReferenceQueue<>();
 
-    private final Map<Class, Set<WeakHandler<H>>> handlersCls = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Set<WeakHandler<H>>> handlersCls = new ConcurrentHashMap<>();
 
     private final Set<WeakHandler<H>> handlers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final ExecutorService handlersExecutor;
 
-    private final int sleepMs;
-
     /**
-     * CAN OVERRIDE THIS METHOD.
-     * If you need to add some weirdo filters to events right before handler will be submitted to executor.
+     * CAN OVERRIDE THIS METHOD. If you need to add some weirdo filters to events right before handler will be submitted
+     * to executor.
      */
     protected void submitHandler(H h, EventWrapper<E, H> ew) {
         handlersExecutor.submit(() -> runHandlerWrapper(h, ew));
     }
 
     /**
-     * CAN OVERRIDE THIS METHOD.
-     * This executes in separate thread, passing event to handler
+     * CAN OVERRIDE THIS METHOD. This executes in separate thread, passing event to handler
      */
     protected void runHandler(H h, E e) throws Throwable {
         h.handleEvent(e);
@@ -89,39 +84,33 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
      */
     public EventBusAsync(ExecutorService handlersExecutor) {
         this.handlersExecutor = handlersExecutor;
-        eventQueueThread = new Thread(this::eventsQueue, "EventQueue handlers thread");
+        Thread eventQueueThread = new Thread(this::eventsQueue, "EventQueue handlers thread");
         eventQueueThread.setDaemon(true);
         eventQueueThread.start();
-        // Possibly will make it as configurable variable
-        this.sleepMs = 5;
     }
 
     @Override
     public void subscribe(H subscriber) {
         Class<? extends EventBusEvent> cls = subscriber.getLinkedClass();
         if (cls == null) {
-            handlers.add(new WeakHandler(subscriber, gcQueue));
+            handlers.add(new WeakHandler<>(subscriber, gcQueue));
         } else {
             synchronized (this) {
-                Set<WeakHandler<H>> hs = handlersCls.get(cls);
-                if (hs == null) {
-                    hs = Collections.newSetFromMap(new ConcurrentHashMap<>());
-                    handlersCls.put(cls, hs);
-                }
-                hs.add(new WeakHandler(subscriber, gcQueue));
+                Set<WeakHandler<H>> hs = handlersCls.computeIfAbsent(cls, k -> Collections.newSetFromMap(new ConcurrentHashMap<>()));
+                hs.add(new WeakHandler<>(subscriber, gcQueue));
             }
         }
     }
 
     @Override
     public void unsubscribe(H subscriber) {
-        Class cls = subscriber.getLinkedClass();
+        Class<?> cls = subscriber.getLinkedClass();
         if (cls == null) {
-            handlers.remove(new WeakHandler(subscriber, gcQueue));
+            handlers.remove(new WeakHandler<>(subscriber, gcQueue));
         } else {
             Set<WeakHandler<H>> set = handlersCls.get(cls);
             if (set != null) {
-                set.remove(new WeakHandler(subscriber, gcQueue));
+                set.remove(new WeakHandler<>(subscriber, gcQueue));
             }
         }
     }
@@ -137,6 +126,9 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
             return;
         }
         eventsQueue.add(new EventWrapper<>(event, success, failure));
+        synchronized (eventsQueue) {
+            eventsQueue.notifyAll();
+        }
     }
 
     @Override
@@ -146,9 +138,9 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
 
     private void eventsQueue() {
         while (true) {
-            WeakHandler wh;
-            while ((wh = (WeakHandler)gcQueue.poll()) != null) {
-                Class cls = wh.getHandlerTypeClass();
+            WeakHandler<?> wh;
+            while ((wh = (WeakHandler<?>) gcQueue.poll()) != null) {
+                Class<?> cls = wh.getHandlerTypeClass();
                 if (cls == null) {
                     handlers.remove(wh);
                 } else {
@@ -160,10 +152,12 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
             }
 
             if (eventsQueue.isEmpty()) {
-                try {
-                    Thread.sleep(sleepMs);
-                } catch (InterruptedException ex) {
-                    logger.error(ex.getMessage(), ex);
+                synchronized (eventsQueue) {
+                    try {
+                        eventsQueue.wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
 
@@ -188,13 +182,12 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
 
             for (WeakHandler<H> wh : handlers) {
                 H eh = wh.get();
-                if (eh.canHandle(ew.event.getClass())) {
+                if (eh != null && eh.canHandle(ew.event.getClass())) {
                     submitHandler(eh, ew);
                 }
             }
         } catch (Throwable th) {
-            logger.error("Event processing fail " + ew.event.getClass().getSimpleName()
-                + ". " + th.getMessage(), th);
+            logger.error("Event processing fail {}. {}", ew.event.getClass().getSimpleName(), th.getMessage(), th);
         }
     }
 
@@ -205,9 +198,7 @@ public class EventBusAsync<E extends EventBusEvent, H extends EventBusHandler<?>
                 ew.success.accept(ew.event, handler);
             }
         } catch (Throwable th) {
-            logger.error("Handler " + handler.getClass().getSimpleName()
-                + " fail on event " + ew.event.getClass().getSimpleName()
-                + ". " + th.getMessage(), th);
+            logger.error("Handler {} fail on event {}. {}", handler.getClass().getSimpleName(), ew.event.getClass().getSimpleName(), th.getMessage(), th);
             if (ew.failure != null) {
                 ew.failure.accept(ew.event, handler, th);
             }

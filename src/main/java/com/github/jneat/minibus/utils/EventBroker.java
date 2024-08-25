@@ -24,79 +24,83 @@
 
 package com.github.jneat.minibus.utils;
 
-import com.github.jneat.minibus.*;
+import com.github.jneat.minibus.EventBus;
+import com.github.jneat.minibus.EventBusAsync;
+import com.github.jneat.minibus.EventBusEvent;
+import com.github.jneat.minibus.EventBusHandler;
+import com.github.jneat.minibus.FailureConsumer;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-
 public class EventBroker {
 
-  private static final EventBus<EventBusEvent, EventBusHandler<?>> EVENT_BUS = new EventBusAsync<>();
-  private static final EventBroker INSTANCE = new EventBroker();
-  private final Map<String, EventBusHandler<?>> registry = new HashMap<>();
+    private static final EventBus<EventBusEvent, EventBusHandler<?>> EVENT_BUS = new EventBusAsync<>();
 
-  public <T extends EventBusEvent> void subscribe(Consumer<T> consumer, Class<T> type, String handlerName) {
-    EventBusHandler<T> handler = new EventBusHandler<T>() {
-      private final Class<T> handlerType = type;
+    private static final EventBroker INSTANCE = new EventBroker();
 
-      @Override
-      protected Class<T> getLinkedClass() {
-        return handlerType;
-      }
+    private final Map<String, EventBusHandler<?>> registry = new HashMap<>();
 
-      @Override
-      public void handle(T event) throws Throwable {
-        consumer.accept(handlerType.cast(event));
-      }
+    public <T extends EventBusEvent> void subscribe(Consumer<T> consumer, Class<T> type, String handlerName) {
+        EventBusHandler<T> handler = new EventBusHandler<T>() {
+            private final Class<T> handlerType = type;
 
-      @Override
-      public void handleEvent(EventBusEvent event) throws Throwable {
-        this.handle(handlerType.cast(event));
-      }
+            @Override
+            protected Class<T> getLinkedClass() {
+                return handlerType;
+            }
 
-      @Override
-      public boolean canHandle(Class<? extends EventBusEvent> cls) {
-        return handlerType.equals(cls);
-      }
-    };
-    this.subscribe(handler, handlerName);
+            @Override
+            public void handle(T event) {
+                consumer.accept(handlerType.cast(event));
+            }
 
-  }
+            @Override
+            public void handleEvent(EventBusEvent event) {
+                this.handle(handlerType.cast(event));
+            }
 
-  public void subscribe(EventBusHandler<?> handler, String handlerName) {
+            @Override
+            public boolean canHandle(Class<? extends EventBusEvent> cls) {
+                return handlerType.equals(cls);
+            }
+        };
+        this.subscribe(handler, handlerName);
 
-    if (handlerName != null && registry.containsKey(handlerName)) {
-      //already subscribed
-      return;
-    } else {
-      registry.put(handlerName, handler);
     }
 
-    EVENT_BUS.subscribe(handler);
-  }
+    public void subscribe(EventBusHandler<?> handler, String handlerName) {
 
-  public void unsubscribe(String handlerName) {
-    EventBusHandler<?> handler = registry.get(handlerName);
-    if (handler != null) {
-      EVENT_BUS.unsubscribe(handler);
-      registry.remove(handlerName);
+        if (handlerName != null && registry.containsKey(handlerName)) {
+            //already subscribed
+            return;
+        } else {
+            registry.put(handlerName, handler);
+        }
+
+        EVENT_BUS.subscribe(handler);
     }
-  }
 
+    public void unsubscribe(String handlerName) {
+        EventBusHandler<?> handler = registry.get(handlerName);
+        if (handler != null) {
+            EVENT_BUS.unsubscribe(handler);
+            registry.remove(handlerName);
+        }
+    }
 
-  public void publish(EventBusEvent event) {
-    EVENT_BUS.publish(event);
-  }
+    public void publish(EventBusEvent event) {
+        EVENT_BUS.publish(event);
+    }
 
-  public void publish(EventBusEvent event, BiConsumer<EventBusEvent, EventBusHandler<?>> success,
-                      FailureConsumer<EventBusEvent, EventBusHandler<?>> failure) {
-    EVENT_BUS.publish(event, success, failure);
-  }
+    public void publish(EventBusEvent event, BiConsumer<EventBusEvent, EventBusHandler<?>> success,
+                        FailureConsumer<EventBusEvent, EventBusHandler<?>> failure) {
+        EVENT_BUS.publish(event, success, failure);
+    }
 
-  public static EventBroker getInstance() {
-    return INSTANCE;
-  }
+    public static EventBroker getInstance() {
+        return INSTANCE;
+    }
 }
