@@ -1,4 +1,5 @@
-val artifactGroup = "com.github.jneat"
+val artifactGroup = "io.github.jneat"
+
 plugins {
     id("java")
     id("maven-publish")
