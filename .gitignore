@@ -2,6 +2,7 @@ build
 out
 
 .idea
+.vscode
 .gradle
 .nb-gradle-properties
 .nb-gradle
