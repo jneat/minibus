@@ -7,12 +7,14 @@ Helps you to avoid adding 3rd party message brokers like RabbitMQ, ActiveMQ, Hor
 It is very simple event bus implementation, based on observable pattern.
 You can use it as dependency or modify it for your needs, it is just several hundreds lines of code.
 
+The **library is stable**. I just don't bump version to 1.0.0 but I guess it is almost there.
+
 [![Release](https://jitpack.io/v/javaplugs/minibus.svg)](https://jitpack.io/#javaplugs/minibus)  
-[API javadoc](https://jitpack.io/com/github/javaplugs/minibus/-SNAPSHOT/javadoc/)
+\[[API javadoc](https://jitpack.io/com/github/javaplugs/minibus/-SNAPSHOT/javadoc/)\]
 
-# Getting started
+# Some code examples?
 
-For working example you can look into project tests.
+You can find code examples in the project tests. See [EventBusTest](./src/test/java/com/github/jneat/minibus/EventBusTest.java).
 
 ## Installation
 You can add this artifact to your project using [JitPack](https://jitpack.io/#javaplugs/minibus).  
