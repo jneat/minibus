@@ -59,10 +59,9 @@ public abstract class EventBusHandler<E extends EventBusEvent> {
     }
 
     /**
-     * If {@link EventBusHandler#getLinkedClass} return null this method will be
-     * called to
-     * check if current event can be handled here.
-     * If getType() result is not null this method will not be called.
+     * If {@link EventBusHandler#getLinkedClass} returns null current method will be
+     * called to determine can current handler process an event.
+     * Warning using this methods falls to O(n) complexity while shoosing a handler.
      *
      * @param cls Event class
      * @return True if event type can be handled or False.
@@ -76,7 +75,7 @@ public abstract class EventBusHandler<E extends EventBusEvent> {
     }
 
     /**
-     * This method should handle event of appropriate type.
+     * This method should handle event of an appropriate type.
      */
     public abstract void handle(E event) throws Throwable;
 }

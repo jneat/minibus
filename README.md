@@ -1,29 +1,33 @@
 # Lightweight event bus for java application
 
-This is easiest way to integrate event processing into your application.
-Suits well for single instance application.
-Helps you to avoid adding 3rd party message brokers like RabbitMQ, ActiveMQ, HornetQ, etc.
+The easiest way to integrate event processing into your applications.
+Developed with a single instance application in mind where many logic processing happens.
+So basically it provides functionality similar to message brokers like RabbitMQ, ActiveMQ, HornetQ, etc. but for a single application.
+The closest alternative is a guava eventbus which is discouraged now.
 
 It is very simple event bus implementation, based on observable pattern.
 You can use it as dependency or modify it for your needs, it is just several hundreds lines of code.
 
 The **library is stable**. I just don't bump version to 1.0.0 but I guess it is almost there.
 
-[![Release](https://jitpack.io/v/javaplugs/minibus.svg)](https://jitpack.io/#javaplugs/minibus)  
-\[[API javadoc](https://jitpack.io/com/github/javaplugs/minibus/-SNAPSHOT/javadoc/)\]
+[![Release](https://jitpack.io/v/io.github.jneat/minibus.svg)](https://jitpack.io/#io.github.jneat/minibus)  
+\[[API javadoc](https://jitpack.io/io/github/jneat/minibus/-SNAPSHOT/javadoc/)\]
 
-# Some code examples?
 
-You can find code examples in the project tests. See [EventBusTest](./src/test/java/com/github/jneat/minibus/EventBusTest.java).
+## Some code examples?
+
+You can find code examples in the project tests. See [EventBusTest](./src/test/java/io/github/jneat/minibus/EventBusTest.java).
+
 
 ## Installation
-You can add this artifact to your project using [JitPack](https://jitpack.io/#javaplugs/minibus).  
+You can add this artifact to your project using [JitPack](https://jitpack.io/#jneat/minibus).  
 All versions list, instructions for gradle, maven, ivy etc. can be found by link above.
 
 To get latest commit use `master-SNAPSHOT` instead version number.
 
 This library using slf4j-api which should not output messages by default. 
 You have to configure proper logger for slf4j in your project to view this messages.
+
 
 ## Define your events model
 
@@ -44,6 +48,7 @@ public class Event3 implements EventBusEvent {
 };
 ```
 The main point here is that you can have different events with different properties.
+
 
 ## Implement handlers for your events
 Any handler should implement EventBusHandler interface.
@@ -136,6 +141,7 @@ public class EventBusBean {
 }
 ```
 
+
 ## Publishing events
 
 All you need is to create event with valid event type and publish it to EventBus.
@@ -152,6 +158,7 @@ public class SomewhereInYourCode {
     }
 }
 ```
+
 
 ## Publishing events with callback
 

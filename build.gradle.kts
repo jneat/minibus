@@ -29,6 +29,9 @@ tasks {
         testLogging.showStandardStreams = true
     }
 
+    javadoc {
+        options.overview = "src/main/resources/overview.md"
+    }
 }
 
 publishing {

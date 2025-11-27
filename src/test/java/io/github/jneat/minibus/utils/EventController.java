@@ -26,7 +26,7 @@ package io.github.jneat.minibus.utils;
 
 public class EventController implements EventObservable<KeyEvent> {
 
-  public void execute(){
+  public void execute() {
     // do some business logic here
     notifyObservers(new KeyEvent("Test Event"));
   }
